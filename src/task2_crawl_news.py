@@ -30,6 +30,11 @@ ARTICLE_URLS = [
     # "https://vnexpress.net/...",
     # "https://tuoitre.vn/...",
     # "https://thanhnien.vn/...",
+    "https://vietnamnet.vn/ca-si-miu-le-duong-tinh-voi-ma-tuy-bi-bat-giu-o-hai-phong-2514728.html",
+    "https://tienphong.vn/ca-si-long-nhat-va-son-ngoc-minh-bi-bat-vi-lien-quan-ma-tuy-post1844815.tpo",
+    "https://thanhnien.vn/ngan-98-duong-tinh-ma-tuy-cong-an-tptay-ninh-dang-hoan-tat-ho-so-xu-ly-185933272.htm",
+    "https://vietnamnet.vn/de-nghi-truy-to-ca-si-chi-dan-cung-anh-trai-vi-to-chuc-su-dung-ma-tuy-2434484.html",
+    "https://dantri.com.vn/phap-luat/nguoi-mau-an-tay-ru-ban-va-tro-ly-cung-su-dung-ma-tuy-20260406152426197.htm",
 ]
 
 
@@ -47,16 +52,14 @@ async def crawl_article(url: str) -> dict:
     """
     from crawl4ai import AsyncWebCrawler
 
-    # TODO: Implement crawling logic
-    # async with AsyncWebCrawler() as crawler:
-    #     result = await crawler.arun(url=url)
-    #     return {
-    #         "url": url,
-    #         "title": result.metadata.get("title", "Unknown"),
-    #         "date_crawled": datetime.now().isoformat(),
-    #         "content_markdown": result.markdown,
-    #     }
-    raise NotImplementedError("Implement crawl_article")
+    async with AsyncWebCrawler() as crawler:
+        result = await crawler.arun(url=url)
+        return {
+            "url": url,
+            "title": result.metadata.get("title", "Unknown") if result.metadata else "Unknown",
+            "date_crawled": datetime.now().isoformat(),
+            "content_markdown": result.markdown,
+        }
 
 
 async def crawl_all():
@@ -70,7 +73,7 @@ async def crawl_all():
         # Lưu file JSON
         filename = f"article_{i:02d}.json"
         filepath = DATA_DIR / filename
-        filepath.write_text(json.dumps(article, ensure_ascii=False, indent=2))
+        filepath.write_text(json.dumps(article, ensure_ascii=False, indent=2) , encoding="utf-8")
         print(f"  ✓ Saved: {filepath}")
 
 
