@@ -27,7 +27,8 @@ Cài đặt:
 """
 
 from pathlib import Path
-
+import os
+import torch
 STANDARDIZED_DIR = Path(__file__).parent.parent / "data" / "standardized"
 
 
@@ -53,7 +54,7 @@ EMBEDDING_DIM = 1024
 
 # Chọn Weaviate vì hỗ trợ hybrid search (dense + BM25) built-in
 # Cần chạy: docker run -p 8080:8080 -p 50051:50051 cr.weaviate.io/semitechnologies/weaviate:latest
-VECTOR_STORE = "weaviate"  # "weaviate" | "chromadb" | "faiss"
+VECTOR_STORE = "chromadb"  # "weaviate" | "chromadb" | "faiss"
 
 WEAVIATE_COLLECTION = "DrugLawDocs"
 
@@ -184,17 +185,20 @@ def embed_chunks(chunks: list[dict]) -> list[dict]:
         Mỗi chunk dict được thêm key 'embedding': list[float]
     """
     from sentence_transformers import SentenceTransformer
-
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"  Loading embedding model: {EMBEDDING_MODEL} ...")
-    model = SentenceTransformer(EMBEDDING_MODEL)
-
+    model = SentenceTransformer(EMBEDDING_MODEL).to(device)
+    
     texts = [c["content"] for c in chunks]
+    
     embeddings = model.encode(
         texts,
         show_progress_bar=True,
         batch_size=32,
         normalize_embeddings=True,  # cosine similarity cần normalize
     )
+    
+    print(f"device embeddings: {embeddings.device}, dtype: {embeddings.dtype}")
 
     for chunk, emb in zip(chunks, embeddings):
         chunk["embedding"] = emb.tolist()
